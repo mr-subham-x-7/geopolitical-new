@@ -159,20 +159,21 @@ async def main():
     seen_ids = set()
 
     for acc in ACCOUNTS_TO_MONITOR:
-        try:
-            tweets = await gather(api.user_tweets(acc, limit=15))
-            count  = 0
-            for tweet in tweets:
-                t_time = tweet.date
-                if t_time.tzinfo is None:
-                    t_time = t_time.replace(tzinfo=timezone.utc)
-                if t_time > since and tweet.id not in seen_ids:
-                    seen_ids.add(tweet.id)
-                    grouped[acc].append(tweet)
-                    count += 1
-            print(f"  ✅ @{acc}: {count} tweets")
-        except Exception as e:
-            print(f"  ⚠️ @{acc} failed: {e}")
+    try:
+        user = await api.user_by_login(acc)
+        tweets = await gather(api.user_tweets(user.id, limit=15))
+        count = 0
+        for tweet in tweets:
+            t_time = tweet.date
+            if t_time.tzinfo is None:
+                t_time = t_time.replace(tzinfo=timezone.utc)
+            if t_time > since and tweet.id not in seen_ids:
+                seen_ids.add(tweet.id)
+                grouped[acc].append(tweet)
+                count += 1
+        print(f"  ✅ @{acc}: {count} tweets")
+    except Exception as e:
+        print(f"  ⚠️ @{acc} failed: {e}")
 
     total = sum(len(v) for v in grouped.values())
     print(f"\n📊 Total tweets in window: {total}")
