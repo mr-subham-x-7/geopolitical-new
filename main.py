@@ -143,8 +143,12 @@ async def main():
         email=os.getenv("X_EMAIL"),
         email_password=os.getenv("X_PASSWORD")
     )
-    await api.pool.login_all()
-    print("✅ X login successful\n")
+   await api.pool.login_all()
+
+accounts = await api.pool.accounts_info()
+
+if not any(a.active for a in accounts):
+    raise RuntimeError("X login failed.")
 
     # ── Time window ──
     since   = datetime.now(timezone.utc) - timedelta(hours=6)
